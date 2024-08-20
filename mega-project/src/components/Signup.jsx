@@ -1,30 +1,29 @@
 import React, { useState } from "react";
+import authService from "../appwrite/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { login as authLogin } from "../store/authSlice";
+import { login } from "../store/authSlice";
 import { Button, Input, Logo } from "./index";
 import { useDispatch } from "react-redux";
-import authService from "../appwrite/auth";
 import { useForm } from "react-hook-form";
-function Login() {
+function Signup() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { register, handleSubmit } = useForm();
   const [error, setError] = useState("");
-  const login = async (data) => {
-    setError("");
+  const dispatch = useDispatch();
+  const [register, handleSubmit] = useForm();
+
+  const create = async (data) => {
+    setError(" ");
     try {
-      const session = await authService.login(data);
-      if (session) {
-        const useData = await authService.getCurrentuser();
-        if (useData) dispatch(authLogin(useData));
+      const userData = await authService.createAccount(data);
+      if (userData) {
+        const userData = await authService.getCurrentuser();
+        if (userData) dispatch(login(userData));
         navigate("/");
       }
-    } catch (error) {
-      setError(error.message);
-    }
+    } catch (error) {}
   };
   return (
-    <div className="flex items-center justify-center w-full">
+    <div className="flex items-center justify-center">
       <div
         className={`mx-auto w-full max-w-lg bg-gray-100 rounded-xl p-10 border border-black/10`}
       >
@@ -34,47 +33,58 @@ function Login() {
           </span>
         </div>
         <h2 className="text-center text-2xl font-bold leading-tight">
-          Sign in to your account
+          Sign up to create account
         </h2>
         <p className="mt-2 text-center text-base text-black/60">
-          Don&apos;t have any account?&nbsp;
+          Already have an account?&nbsp;
           <Link
-            to="/signup"
+            to="/login"
             className="font-medium text-primary transition-all duration-200 hover:underline"
           >
-            Sign Up
+            Sign In
           </Link>
         </p>
-        {error && <p className="text-red-500 mt-8 text-center">{error}</p>}
+        {error && <p className="text-red-600 mt-8 text-center">{error}</p>} //
+        agr error hai to usko display kara denge. // yaha on submit m create ko
 
-        <form onSubmit={handleSubmit(login)} className="mt-8">
-          <div className="space-y-5">
+        
+        call krege handle submit k through jo ki data dega create ko.
+        <form onSubmit={handleSubmit(create)}>
+          <div className="space-y-5>">
             <Input
-              label="Email:"
+              label="Full Name: "
+              placeholder="Enter your full name"
+              {...register("name", {
+                required: true,
+              })}
+            />
+
+            <Input
+              label="Email: "
               placeholder="Enter your email"
               type="email"
-              {...register("email", { // yha jo imput jayega wo email k naam s save hoga, isliye ba=racket k andr email naam s save kiye hain.
+              {...register("email", {
                 required: true,
                 validate: {
                   matchPatern: (value) =>
                     /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
                     "Email address must be a valid address",
                 },
-              })} // yaha useform use kar rahe hai uske liye
+              })}
             />
 
             <Input
-              label="password"
+              label="Password: "
               type="password"
-              placeholder="type your password"
+              placeholder="Enter your password"
               {...register("password", {
                 required: true,
               })}
             />
-             <Button
-                type="submit"
-                className="w-full"
-                >Sign in</Button>
+
+            <Button type="submit" className="w-full">
+              Create Account
+            </Button>
           </div>
         </form>
       </div>
@@ -82,4 +92,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Signup;
